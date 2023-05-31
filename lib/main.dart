@@ -34,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<int> brickLengths = [16, 24, 32, 16, 24, 16];
   List<int> brickHeights = [1, 1, 1, 2, 2, 3];
+  List<int> brickFraction = [1, 1, 1, 1, 1, 1];
   int wallLength = 1000;
   int wallHeight = 10;
   List<Brick> bricks = [];
@@ -85,7 +86,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 const Text(
-                    'If the tallest brick has height n, there should be a bricks of height 1, 2, ..., n.'),
+                    'For each brick choose the width, height and the fraction of occurence (e.g. percenatge).'
+                    'All entered numbers have to be integers.'),
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -207,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const Text('''
                     - Divide all heights by the same number to make them integers.
-                    - Add the same brick type multiple times to make it appear more often.
+                    - For scottish wall there should be a bricks of height 1, 2 and possibly 3.
                     - Press "Design Wall" again to get a different wall'''),
                 const SizedBox(height: 8),
                 Padding(

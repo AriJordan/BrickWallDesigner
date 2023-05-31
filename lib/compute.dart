@@ -52,6 +52,9 @@ List<Brick> compute(List<int> brickLengths, List<int> brickHeights,
   }
 
   bool checkFitsWell(int brickId, int x, int y) {
+    if (y > 0 && brickHeights[brickId] > 2) {
+      return false;
+    }
     if (wallType == WallType.layered) {
       if (y > 0 && x + brickLengths[brickId] < wallLength) {
         // Ends at same place as below
