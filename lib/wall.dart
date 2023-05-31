@@ -22,7 +22,7 @@ class BrickPainter extends CustomPainter {
           bricks[i].y * scale; // Y-coordinate of the top side of the Brick
       double width = bricks[i].width * scale; // Width of the Brick
       double height = bricks[i].height * scale; // Height of the Brick
-      print("left: $left, top: $top, width: $width, height: $height");
+      // print("left: $left, top: $top, width: $width, height: $height");
 
       Rect rect = Rect.fromLTWH(left, top, width, height);
       canvas.drawRect(rect, paint);

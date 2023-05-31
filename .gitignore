@@ -1,0 +1,6 @@
+# VSCode plugin
+.dart_tool/
+.vscode/
+
+build/
+.firebase/

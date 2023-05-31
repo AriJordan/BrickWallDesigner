@@ -41,6 +41,28 @@ class _MyHomePageState extends State<MyHomePage> {
   final outerScrollController = ScrollController();
   final wallScrollController = ScrollController();
 
+  WallType selectedWallType = WallType.random;
+
+  List<Widget> brickCounts() {
+    List<int> counts = List<int>.filled(brickLengths.length, 0);
+    for (int takenBrick = 0; takenBrick < bricks.length; takenBrick++) {
+      for (int possibleBrick = 0;
+          possibleBrick < brickLengths.length;
+          possibleBrick++) {
+        if (bricks[takenBrick].width == brickLengths[possibleBrick] &&
+            bricks[takenBrick].height == brickHeights[possibleBrick]) {
+          counts[possibleBrick]++;
+          break;
+        }
+      }
+    }
+    return counts
+        .asMap()
+        .map((key, value) => MapEntry(key, Text('Brick type $key: $value')))
+        .values
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,10 +77,19 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: outerScrollController,
             child: Column(
               children: [
+                const Text(
+                  'Choose brick types you want to use',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Text(
+                    'If the tallest brick has height n, there should be a bricks of height 1, 2, ..., n.'),
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: brickLengths.length + 2,
+                  itemCount: brickLengths.length + 3,
                   itemBuilder: (context, index) {
                     if (index == brickLengths.length) {
                       // + Add button
@@ -78,6 +109,23 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       );
                     } else if (index == brickLengths.length + 1) {
+                      // - Remove button
+                      return ListTile(
+                        title: Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                brickLengths.removeLast();
+                                brickHeights.removeLast();
+                              });
+                            },
+                            child: const Text(
+                              '- (Remove last brick type)',
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (index == brickLengths.length + 2) {
                       // Wall dimensions
                       return ListTile(
                         title: const Text(
@@ -149,9 +197,36 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   },
                 ),
-                const Text('There must be a brick of height 1.'),
+                const SizedBox(height: 8),
                 const Text(
-                    'Tip: divide all heights by the same number to make an integer.'),
+                  'Tips',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Text('''
+                    - Divide all heights by the same number to make them integers.
+                    - Add the same brick type multiple times to make it appear more often.
+                    - Press "Design Wall" again to get a different wall'''),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                  child: DropdownButtonFormField(
+                    value: selectedWallType,
+                    items: WallType.values.map((WallType wallType) {
+                      return DropdownMenuItem<WallType>(
+                        value: wallType,
+                        child: Text(wallType.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (wallType) {
+                      setState(() {
+                        selectedWallType = wallType!;
+                      });
+                    },
+                  ),
+                ),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
@@ -161,6 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         brickHeights,
                         wallLength,
                         wallHeight,
+                        selectedWallType,
                       );
                     });
                   },
@@ -170,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   thumbVisibility: true,
                   trackVisibility: true,
                   thickness: 20.0,
+                  // ignore: deprecated_member_use
                   hoverThickness: 25.0,
                   controller: wallScrollController,
                   child: SingleChildScrollView(
@@ -198,6 +275,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                 ),
+                const Text(
+                  'Brick counts',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                ...brickCounts(),
+                const SizedBox(height: 32),
               ],
             ),
           ),
