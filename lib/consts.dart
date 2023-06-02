@@ -1,3 +1,3 @@
-const double maxWallHeight = 200.0;
+const double maxWallHeight = 400.0;
 
-enum WallType { random, layered, scottish }
+enum WallType { layered, scottish }

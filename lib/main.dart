@@ -1,7 +1,8 @@
+import 'package:flutter/material.dart';
+
 import 'package:brick_wall_designer/compute.dart';
 import 'package:brick_wall_designer/consts.dart';
 import 'package:brick_wall_designer/wall.dart';
-import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,9 +33,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<int> brickLengths = [16, 24, 32, 16, 24, 16];
-  List<int> brickHeights = [1, 1, 1, 2, 2, 3];
-  List<int> brickFraction = [1, 1, 1, 1, 1, 1];
+  List<int> brickLengths = [16, 24, 32, 16, 24, 32, 40, 48, 16, 24, 32];
+  List<int> brickHeights = [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3];
   int wallLength = 1000;
   int wallHeight = 10;
   List<Brick> bricks = [];
@@ -42,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final outerScrollController = ScrollController();
   final wallScrollController = ScrollController();
 
-  WallType selectedWallType = WallType.random;
+  WallType selectedWallType = WallType.scottish;
 
   List<Widget> brickCounts() {
     List<int> counts = List<int>.filled(brickLengths.length, 0);
@@ -86,8 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 const Text(
-                    'For each brick choose the width, height and the fraction of occurence (e.g. percenatge).'
-                    'All entered numbers have to be integers.'),
+                    'For each brick choose the width, height and the fraction of occurence (e.g. percenatge). '
+                    'All entered numbers have to be integers. '
+                    'For scottish wall there should be a bricks of height 1, 2 and possibly 3. '
+                    'For other walls types there should be only bricks of height 1.'),
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -209,7 +211,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const Text('''
                     - Divide all heights by the same number to make them integers.
-                    - For scottish wall there should be a bricks of height 1, 2 and possibly 3.
                     - Press "Design Wall" again to get a different wall'''),
                 const SizedBox(height: 8),
                 Padding(
@@ -259,15 +260,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            SizedBox(
-                              height: maxWallHeight,
-                              width: maxWallHeight / wallHeight * wallLength,
-                              child: Wall(
-                                bricks: bricks,
-                                length: wallLength,
-                                height: wallHeight,
-                              ),
-                            ),
+                            Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 20.0, right: 20.0),
+                                child: SizedBox(
+                                  height: maxWallHeight,
+                                  width:
+                                      maxWallHeight / wallHeight * wallLength,
+                                  child: Wall(
+                                    bricks: bricks,
+                                    length: wallLength,
+                                    height: wallHeight,
+                                  ),
+                                )),
                             const SizedBox(
                               height: 35,
                             )
