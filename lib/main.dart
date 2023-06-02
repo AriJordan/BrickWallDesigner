@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:brick_wall_designer/compute.dart';
+import 'package:brick_wall_designer/compute.dart' as wc;
 import 'package:brick_wall_designer/consts.dart';
 import 'package:brick_wall_designer/wall.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:tuple/tuple.dart';
+import 'package:universal_html/html.dart' as html;
 
 void main() {
   runApp(const MyApp());
@@ -33,16 +39,42 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  GlobalKey globalKey = GlobalKey();
   List<int> brickLengths = [16, 24, 32, 16, 24, 32, 40, 48, 16, 24, 32];
   List<int> brickHeights = [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3];
-  int wallLength = 1000;
+  int wallLength = 500;
   int wallHeight = 10;
-  List<Brick> bricks = [];
+  List<wc.Brick> bricks = [];
+  bool success = false;
+  bool wallCreated = false;
 
   final outerScrollController = ScrollController();
   final wallScrollController = ScrollController();
+  //Create an instance of ScreenshotController
+  ScreenshotController screenshotController = ScreenshotController();
 
   WallType selectedWallType = WallType.scottish;
+
+  double computePaintedWallWidth() {
+    return min(maxWallHeight / wallHeight * wallLength, maxWallWidth);
+  }
+
+  Widget successWidget() {
+    if (!wallCreated) {
+      return const SizedBox(height: 24);
+    }
+    if (success) {
+      return const Text("Creating wall succeeded");
+    } else {
+      return const Text(
+        "Creating wall failed for some reason. Try to rerun or change the brick types",
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+  }
 
   List<Widget> brickCounts() {
     List<int> counts = List<int>.filled(brickLengths.length, 0);
@@ -64,6 +96,58 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
   }
 
+  Widget wallWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Padding(
+                padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                child: SizedBox(
+                  height: maxWallHeight,
+                  width: computePaintedWallWidth(),
+                  child: Wall(
+                    bricks: bricks,
+                    length: wallLength,
+                    height: wallHeight,
+                    paintWidth: computePaintedWallWidth(),
+                  ),
+                )),
+            const SizedBox(
+              height: 35,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<Uint8List> captureWidgetAsImage(Widget widget) async {
+    Uint8List image = await screenshotController.captureFromWidget(
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(30.0),
+          child: widget,
+        ),
+        targetSize: Size(computePaintedWallWidth() + 500, maxWallHeight + 200));
+    return image;
+  }
+
+  saveImage(Uint8List image) {
+    // Encode our file in base64
+    final base64 = base64Encode(image);
+
+    // Create a download link
+    final href = 'data:application/png;base64,$base64';
+    final anchor = html.AnchorElement()
+      ..href = href
+      ..download = 'wall.png';
+
+    // Trigger the download
+    anchor.click();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: outerScrollController,
             child: Column(
               children: [
+                const SizedBox(height: 16),
                 const Text(
                   'Choose brick types you want to use',
                   style: TextStyle(
@@ -85,11 +170,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 8),
                 const Text(
                     'For each brick choose the width, height and the fraction of occurence (e.g. percenatge). '
                     'All entered numbers have to be integers. '
                     'For scottish wall there should be a bricks of height 1, 2 and possibly 3. '
                     'For other walls types there should be only bricks of height 1.'),
+                const SizedBox(height: 16),
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -201,7 +288,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
                 const Text(
                   'Tips',
                   style: TextStyle(
@@ -234,13 +321,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      bricks = compute(
-                        brickLengths,
-                        brickHeights,
-                        wallLength,
-                        wallHeight,
-                        selectedWallType,
-                      );
+                      for (int attempt = 0; attempt < 5; attempt++) {
+                        Tuple2<List<wc.Brick>, bool> result = wc.compute(
+                          brickLengths,
+                          brickHeights,
+                          wallLength,
+                          wallHeight,
+                          selectedWallType,
+                        );
+                        success = result.item2;
+                        if (success) {
+                          bricks = result.item1;
+                          wallCreated = true;
+                          break;
+                        }
+                      }
                     });
                   },
                   child: const Text('Design wall'),
@@ -255,33 +350,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: SingleChildScrollView(
                     controller: wallScrollController,
                     scrollDirection: Axis.horizontal,
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 20.0, right: 20.0),
-                                child: SizedBox(
-                                  height: maxWallHeight,
-                                  width:
-                                      maxWallHeight / wallHeight * wallLength,
-                                  child: Wall(
-                                    bricks: bricks,
-                                    length: wallLength,
-                                    height: wallHeight,
-                                  ),
-                                )),
-                            const SizedBox(
-                              height: 35,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
+                    child: wallWidget(),
                   ),
                 ),
+                successWidget(),
+                const SizedBox(height: 16),
                 const Text(
                   'Brick counts',
                   style: TextStyle(
@@ -290,6 +363,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 ...brickCounts(),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    Uint8List image = await captureWidgetAsImage(wallWidget());
+                    saveImage(image);
+                  },
+                  child: const Text(
+                    'Save wall as png',
+                  ),
+                ),
                 const SizedBox(height: 32),
               ],
             ),

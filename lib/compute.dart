@@ -12,8 +12,8 @@ class Brick {
   Brick(this.width, this.height, this.x, this.y);
 }
 
-List<Brick> compute(List<int> brickLengths, List<int> brickHeights,
-    int wallLength, int wallHeight, WallType wallType) {
+Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
+    List<int> brickHeights, int wallLength, int wallHeight, WallType wallType) {
   int numBricks = brickLengths.length;
   List<int> brickH2Lengths = [];
   List<int> brickH3Lengths = [];
@@ -176,7 +176,7 @@ List<Brick> compute(List<int> brickLengths, List<int> brickHeights,
           if (isAboveH2Empty) {
             // Can put any height 3 brick
             brickH3Lengths.shuffle(Random());
-            fill(Brick(brickH3Lengths[0], 2, brickEndX, 0));
+            fill(Brick(brickH3Lengths[0], 3, brickEndX, 0));
             return true;
           }
         } else {
@@ -216,5 +216,13 @@ List<Brick> compute(List<int> brickLengths, List<int> brickHeights,
     bricks[chosenBrickId].y =
         wallHeight - bricks[chosenBrickId].y - bricks[chosenBrickId].height + 1;
   }
-  return bricks;
+  bool success = true;
+  for (int x = 0; x < wallLength; x++) {
+    for (int y = 0; y < wallHeight; y++) {
+      if (takenBrickHeight[x][y] == 0) {
+        success = false;
+      }
+    }
+  }
+  return Tuple2(bricks, success);
 }
