@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  List<Widget> brickCounts() {
+  Widget brickCounts() {
     List<int> counts = List<int>.filled(brickLengths.length, 0);
     for (int takenBrick = 0; takenBrick < bricks.length; takenBrick++) {
       for (int possibleBrick = 0;
@@ -89,36 +89,46 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     }
-    return counts
-        .asMap()
-        .map((key, value) => MapEntry(key, Text('Brick type $key: $value')))
-        .values
-        .toList();
+    return Container(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: counts
+              .asMap()
+              .map((key, value) => MapEntry(
+                    key,
+                    Text(
+                        'Brick type $key (${brickLengths[key]} x ${brickHeights[key]}): $value'),
+                  ))
+              .values
+              .toList(),
+        ),
+      ),
+    );
   }
 
   Widget wallWidget() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                child: SizedBox(
-                  height: maxWallHeight,
-                  width: computePaintedWallWidth(),
-                  child: Wall(
-                    bricks: bricks,
-                    length: wallLength,
-                    height: wallHeight,
-                    paintWidth: computePaintedWallWidth(),
-                  ),
-                )),
-            const SizedBox(
-              height: 35,
-            )
-          ],
-        ),
+      child: Column(
+        children: [
+          Padding(
+              padding:
+                  const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 45.0),
+              child: SizedBox(
+                height: maxWallHeight,
+                width: computePaintedWallWidth(),
+                child: Wall(
+                  bricks: bricks,
+                  length: wallLength,
+                  height: wallHeight,
+                  paintWidth: computePaintedWallWidth(),
+                ),
+              )),
+          const SizedBox(
+            height: 35,
+          )
+        ],
       ),
     );
   }
@@ -150,231 +160,268 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    return Theme(
+      data: ThemeData(
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Colors
+              .white, // Set the background color of the form fields to white
+        ),
+        textTheme: Typography.blackCupertino,
       ),
-      body: Center(
-        child: Scrollbar(
-          thumbVisibility: true,
-          controller: outerScrollController,
-          child: SingleChildScrollView(
+      child: Scaffold(
+        backgroundColor: Colors.grey[300],
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: Scrollbar(
+            thumbVisibility: true,
             controller: outerScrollController,
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                const Text(
-                  'Choose brick types you want to use',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                    'For each brick choose the width, height and the fraction of occurence (e.g. percenatge). '
-                    'All entered numbers have to be integers. '
-                    'For scottish wall there should be a bricks of height 1, 2 and possibly 3. '
-                    'For other walls types there should be only bricks of height 1.'),
-                const SizedBox(height: 16),
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: brickLengths.length + 3,
-                  itemBuilder: (context, index) {
-                    if (index == brickLengths.length) {
-                      // + Add button
-                      return ListTile(
-                        title: Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                brickLengths.add(0);
-                                brickHeights.add(0);
-                              });
-                            },
-                            child: const Text(
-                              '+ (Add brick type)',
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (index == brickLengths.length + 1) {
-                      // - Remove button
-                      return ListTile(
-                        title: Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                brickLengths.removeLast();
-                                brickHeights.removeLast();
-                              });
-                            },
-                            child: const Text(
-                              '- (Remove last brick type)',
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (index == brickLengths.length + 2) {
-                      // Wall dimensions
-                      return ListTile(
-                        title: const Text(
-                            'Wall dimensions (length, height), needs to be integer.'),
-                        subtitle: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                keyboardType: TextInputType.number,
-                                initialValue: wallLength.toString(),
-                                onChanged: (value) {
+            child: SingleChildScrollView(
+              controller: outerScrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Choose brick types you want to use',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('For each brick choose the width and height. '
+                        'All entered numbers have to be integers. '
+                        'For scottish wall there should be a bricks of height 1, 2 and possibly 3. '
+                        'For other walls types there should only be bricks of height 1.'),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: brickLengths.length + 3,
+                      itemBuilder: (context, index) {
+                        if (index == brickLengths.length) {
+                          // + Add button
+                          return ListTile(
+                            title: Center(
+                              child: ElevatedButton(
+                                onPressed: () {
                                   setState(() {
-                                    wallLength =
-                                        int.tryParse(value) ?? wallLength;
+                                    brickLengths.add(0);
+                                    brickHeights.add(0);
                                   });
                                 },
+                                child: const Text(
+                                  '+ (Add brick type)',
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                keyboardType: TextInputType.number,
-                                initialValue: wallHeight.toString(),
-                                onChanged: (value) {
-                                  wallHeight =
-                                      int.tryParse(value) ?? wallHeight;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      // Bricks
-                      return ListTile(
-                        title: Text(
-                          'Brick type ${index + 1} (length, height), needs to be integer.',
-                        ),
-                        subtitle: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                keyboardType: TextInputType.number,
-                                initialValue: brickLengths[index].toString(),
-                                onChanged: (value) {
+                          );
+                        } else if (index == brickLengths.length + 1) {
+                          // - Remove button
+                          return ListTile(
+                            title: Center(
+                              child: ElevatedButton(
+                                onPressed: () {
                                   setState(() {
-                                    brickLengths[index] = int.tryParse(value) ??
-                                        brickLengths[index];
+                                    brickLengths.removeLast();
+                                    brickHeights.removeLast();
                                   });
                                 },
+                                child: const Text(
+                                  '- (Remove last brick type)',
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                keyboardType: TextInputType.number,
-                                initialValue: brickHeights[index].toString(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    brickHeights[index] = int.tryParse(value) ??
-                                        brickHeights[index];
-                                  });
-                                },
-                              ),
+                          );
+                        } else if (index == brickLengths.length + 2) {
+                          // Wall dimensions
+                          return ListTile(
+                            title: const Text(
+                              'Wall dimensions (length, height), needs to be integer.',
                             ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Tips',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Text('''
-                    - Divide all heights by the same number to make them integers.
-                    - Press "Design Wall" again to get a different wall'''),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                  child: DropdownButtonFormField(
-                    value: selectedWallType,
-                    items: WallType.values.map((WallType wallType) {
-                      return DropdownMenuItem<WallType>(
-                        value: wallType,
-                        child: Text(wallType.toString()),
-                      );
-                    }).toList(),
-                    onChanged: (wallType) {
-                      setState(() {
-                        selectedWallType = wallType!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      for (int attempt = 0; attempt < 5; attempt++) {
-                        Tuple2<List<wc.Brick>, bool> result = wc.compute(
-                          brickLengths,
-                          brickHeights,
-                          wallLength,
-                          wallHeight,
-                          selectedWallType,
-                        );
-                        success = result.item2;
-                        if (success) {
-                          bricks = result.item1;
-                          wallCreated = true;
-                          break;
+                            subtitle: Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    initialValue: wallLength.toString(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        wallLength =
+                                            int.tryParse(value) ?? wallLength;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    initialValue: wallHeight.toString(),
+                                    onChanged: (value) {
+                                      wallHeight =
+                                          int.tryParse(value) ?? wallHeight;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          // Bricks
+                          return ListTile(
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  'Brick type ${index + 1}, length: ',
+                                  style: const TextStyle(color: Colors.black),
+                                ),
+                                Expanded(
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    initialValue:
+                                        brickLengths[index].toString(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        brickLengths[index] =
+                                            int.tryParse(value) ??
+                                                brickLengths[index];
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  ' height: ',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                Expanded(
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    initialValue:
+                                        brickHeights[index].toString(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        brickHeights[index] =
+                                            int.tryParse(value) ??
+                                                brickHeights[index];
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         }
-                      }
-                    });
-                  },
-                  child: const Text('Design wall'),
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Tips',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text('''
+                      - Divide all heights by the same number to make them integers.
+                      - Press "Design wall" again to get a different wall'''),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                      child: DropdownButtonFormField(
+                        value: selectedWallType,
+                        items: WallType.values.map((WallType wallType) {
+                          return DropdownMenuItem<WallType>(
+                            value: wallType,
+                            child: Text(wallType.toString()),
+                          );
+                        }).toList(),
+                        onChanged: (wallType) {
+                          setState(() {
+                            selectedWallType = wallType!;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          for (int attempt = 0; attempt < 5; attempt++) {
+                            Tuple2<List<wc.Brick>, bool> result = wc.compute(
+                              brickLengths,
+                              brickHeights,
+                              wallLength,
+                              wallHeight,
+                              selectedWallType,
+                            );
+                            success = result.item2;
+                            if (success) {
+                              bricks = result.item1;
+                              wallCreated = true;
+                              break;
+                            }
+                          }
+                        });
+                      },
+                      child: const Text('Design wall'),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Wall',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      color: Colors.white,
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        thickness: 20.0,
+                        // ignore: deprecated_member_use
+                        hoverThickness: 25.0,
+                        controller: wallScrollController,
+                        child: SingleChildScrollView(
+                          controller: wallScrollController,
+                          scrollDirection: Axis.horizontal,
+                          child: wallWidget(),
+                        ),
+                      ),
+                    ),
+                    successWidget(),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Brick counts',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    brickCounts(),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Uint8List image =
+                            await captureWidgetAsImage(wallWidget());
+                        saveImage(image);
+                      },
+                      child: const Text(
+                        'Save wall as png',
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
-                Scrollbar(
-                  thumbVisibility: true,
-                  trackVisibility: true,
-                  thickness: 20.0,
-                  // ignore: deprecated_member_use
-                  hoverThickness: 25.0,
-                  controller: wallScrollController,
-                  child: SingleChildScrollView(
-                    controller: wallScrollController,
-                    scrollDirection: Axis.horizontal,
-                    child: wallWidget(),
-                  ),
-                ),
-                successWidget(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Brick counts',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                ...brickCounts(),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    Uint8List image = await captureWidgetAsImage(wallWidget());
-                    saveImage(image);
-                  },
-                  child: const Text(
-                    'Save wall as png',
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
+              ),
             ),
           ),
         ),
