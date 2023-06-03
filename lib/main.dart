@@ -56,7 +56,18 @@ class _MyHomePageState extends State<MyHomePage> {
   WallType selectedWallType = WallType.scottish;
 
   double computePaintedWallWidth() {
-    return min(maxWallHeight / wallHeight * wallLength, maxWallWidth);
+    double averageBrickLength = brickLengths.isEmpty
+        ? 0.0
+        : brickLengths.fold(0, (value, element) => value + element) /
+            brickLengths.length;
+    double averageBrickHeight = brickHeights.isEmpty
+        ? 0.0
+        : brickHeights.fold(0, (value, element) => value + element) /
+            brickHeights.length;
+    double adaptFactor =
+        min(1.0, averageBrickHeight / averageBrickLength * 3.0);
+    return min(
+        maxWallHeight / wallHeight * wallLength * adaptFactor, maxWallWidth);
   }
 
   Widget successWidget() {
@@ -90,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
     return Container(
-      color: Colors.white,
+      color: Colors.yellow[100],
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -109,6 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget wallWidget() {
+    if (!wallCreated) {
+      return const Text('Press "Design wall"');
+    }
     return Center(
       child: Column(
         children: [
@@ -136,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<Uint8List> captureWidgetAsImage(Widget widget) async {
     Uint8List image = await screenshotController.captureFromWidget(
         Container(
-          color: Colors.white,
+          color: Colors.yellow[100],
           padding: const EdgeInsets.all(30.0),
           child: widget,
         ),
@@ -195,8 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(height: 8),
                     const Text('For each brick choose the width and height. '
                         'All entered numbers have to be integers. '
-                        'For scottish wall there should be a bricks of height 1, 2 and possibly 3. '
-                        'For other walls types there should only be bricks of height 1.'),
+                        'For scottish wall there should be bricks of height 1, 2 and 3.'),
                     const SizedBox(height: 16),
                     ListView.builder(
                       physics: const NeverScrollableScrollPhysics(),
@@ -381,7 +394,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      color: Colors.white,
+                      color: Colors.yellow[100],
                       child: Scrollbar(
                         thumbVisibility: true,
                         trackVisibility: true,

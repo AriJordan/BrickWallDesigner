@@ -24,7 +24,7 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
       brickH3Lengths.add(brickLengths[brickId]);
     }
   }
-  int consecutiveH3 = 0;
+  int bottomId = 0;
   List<List<int>> takenBrickHeight = List.generate(
     wallLength,
     (index) => List<int>.filled(wallHeight, 0),
@@ -40,11 +40,7 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
   void fill(Brick brick) {
     bricks.add(brick);
     if (brick.y == 0) {
-      if (brick.height >= 3) {
-        consecutiveH3++;
-      } else {
-        consecutiveH3 = 0;
-      }
+      bottomId++;
     }
     for (int bx = brick.x; bx < brick.x + brick.width; bx++) {
       if (bx < wallLength) {
@@ -80,10 +76,6 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
         // Don't allow height 2 bricks here to not get too many
         return false;
       }
-      if (consecutiveH3 >= 2 && brickHeights[brickId] >= 3) {
-        // Ensure there are not more than 2 consecutive height 2 bricks for scottish wall
-        return false;
-      }
     } else if (wallType == WallType.layered) {
       if (x > 0) {
         // Previous brick does not have same height
@@ -111,6 +103,31 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
     return false;
   }
 
+  // Try placing a height 1 brick above a bottom height 2 brick such that their ends match
+  // Return true if it succeeds
+  bool tryPlaceH1AboveH2(int brickId, int bx, int by) {
+    if (bx + brickLengths[brickId] >= wallLength) {
+      return true;
+    }
+    int neededLength = 0;
+    int startH1 = -1;
+    for (int x = bx; x < wallLength; x++) {
+      if (takenBrickHeight[x][2] == 0) {
+        neededLength = (bx + brickLengths[brickId] - x);
+        startH1 = x;
+        break;
+      }
+    }
+    for (int height1Id = 0; height1Id < brickLengths.length; height1Id++) {
+      if (brickHeights[height1Id] == 1 &&
+          brickLengths[height1Id] == neededLength) {
+        fill(Brick(neededLength, 1, startH1, 2));
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Check whether the brick would cause two stacked aligned gaps.
   // If yes the only allowed case is two gaps and adding a height two brick.
   // In this case add the height two brick directly.
@@ -128,20 +145,19 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
           // Don't allow stacked gaps in these cases
           return false;
         }
+        if (y == 0 && wallType == WallType.scottish) {
+          return false;
+        }
         if (brickHeights[brickId] == 1) {
           // H2 = Height two brick
           int belowH2Level = belowLevel - (isBelowSame ? 1 : 0);
           int aboveH2Level = aboveLevel + (isAboveSame ? 1 : 0);
           assert(aboveH2Level - belowH2Level == 3);
           // Same gap or also height 2
-          bool isAdditionalBelowSame = belowH2Level >= 0 &&
-              (levelStartsAt(belowH2Level, brickEndX) ||
-                  (takenBrickHeight[brickEndX][belowH2Level] >= 2 &&
-                      wallType == WallType.scottish));
+          bool isAdditionalBelowSame =
+              belowH2Level >= 0 && levelStartsAt(belowH2Level, brickEndX);
           bool isAdditionalAboveSame = aboveH2Level < wallHeight &&
-              (levelStartsAt(aboveH2Level, brickEndX) ||
-                  (takenBrickHeight[brickEndX][aboveH2Level] >= 2 &&
-                      wallType == WallType.scottish));
+              levelStartsAt(aboveH2Level, brickEndX);
           if (isAdditionalBelowSame || isAdditionalAboveSame) {
             // Don't allow 3 aligned stacked brick gaps
             return false;
@@ -167,20 +183,34 @@ Tuple2<List<Brick>, bool> compute(List<int> brickLengths,
             }
             return false;
           }
-        } else if (brickHeights[brickId] == 2 && y == 0) {
-          // Only allowed case when brick height is two to be gap aligned is when it's on the bottom
-          int aboveH2Level = 2;
-          bool isAboveH2Empty = aboveH2Level < wallHeight &&
-              (brickEndX < wallLength &&
-                  takenBrickHeight[brickEndX][aboveH2Level] == 0);
-          if (isAboveH2Empty) {
-            // Can put any height 3 brick
-            brickH3Lengths.shuffle(Random());
-            fill(Brick(brickH3Lengths[0], 3, brickEndX, 0));
-            return true;
-          }
         } else {
           return false;
+        }
+      } else if (wallType == WallType.scottish && y == 0) {
+        if (brickHeights[brickId] !=
+            scottishPattern[bottomId % scottishPattern.length]) {
+          // Height does not match desired pattern
+          return false;
+        } else if (brickHeights[brickId] == 2 &&
+            scottishPattern[(bottomId + 1) % scottishPattern.length] == 3) {
+          // If next brick should have height 3 ensure it works out with height 1 brick above height 2 brick
+          if (!tryPlaceH1AboveH2(brickId, x, y)) {
+            return false;
+          }
+        } else if (brickHeights[brickId] == 3) {
+          if (scottishPattern[(bottomId + 1) % scottishPattern.length] == 3 ||
+              scottishPattern[(bottomId + scottishPattern.length - 1) %
+                      scottishPattern.length] ==
+                  3) {
+            // Ensure brick is not too long when two consecutive height 3
+            int averageH3BrickLength = brickH3Lengths.isEmpty
+                ? 0
+                : brickH3Lengths.fold(0, (value, element) => value + element) ~/
+                    brickH3Lengths.length;
+            if (brickLengths[brickId] > averageH3BrickLength) {
+              return false;
+            }
+          }
         }
       }
     }
