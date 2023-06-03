@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Center(child: Text(widget.title)),
         ),
         body: Center(
           child: Scrollbar(
@@ -253,32 +253,62 @@ class _MyHomePageState extends State<MyHomePage> {
                         } else if (index == brickLengths.length + 2) {
                           // Wall dimensions
                           return ListTile(
-                            title: const Text(
-                              'Wall dimensions (length, height), needs to be integer.',
+                            title: Center(
+                              child: Column(
+                                children: const [
+                                  SizedBox(
+                                    height: 8,
+                                  ),
+                                  Text(
+                                    'Wall dimensions',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 8,
+                                  )
+                                ],
+                              ),
                             ),
                             subtitle: Row(
                               children: [
+                                const Text(
+                                  'length: ',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                                 Expanded(
-                                  child: TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    initialValue: wallLength.toString(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        wallLength =
-                                            int.tryParse(value) ?? wallLength;
-                                      });
-                                    },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      keyboardType: TextInputType.number,
+                                      initialValue: wallLength.toString(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          wallLength =
+                                              int.tryParse(value) ?? wallLength;
+                                        });
+                                      },
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
+                                const Text(
+                                  'height: ',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                                 Expanded(
-                                  child: TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    initialValue: wallHeight.toString(),
-                                    onChanged: (value) {
-                                      wallHeight =
-                                          int.tryParse(value) ?? wallHeight;
-                                    },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      keyboardType: TextInputType.number,
+                                      initialValue: wallHeight.toString(),
+                                      onChanged: (value) {
+                                        wallHeight =
+                                            int.tryParse(value) ?? wallHeight;
+                                      },
+                                    ),
                                   ),
                                 ),
                               ],
@@ -294,17 +324,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   style: const TextStyle(color: Colors.black),
                                 ),
                                 Expanded(
-                                  child: TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    initialValue:
-                                        brickLengths[index].toString(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        brickLengths[index] =
-                                            int.tryParse(value) ??
-                                                brickLengths[index];
-                                      });
-                                    },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      keyboardType: TextInputType.number,
+                                      initialValue:
+                                          brickLengths[index].toString(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          brickLengths[index] =
+                                              int.tryParse(value) ??
+                                                  brickLengths[index];
+                                        });
+                                      },
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -313,17 +346,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 Expanded(
-                                  child: TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    initialValue:
-                                        brickHeights[index].toString(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        brickHeights[index] =
-                                            int.tryParse(value) ??
-                                                brickHeights[index];
-                                      });
-                                    },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      keyboardType: TextInputType.number,
+                                      initialValue:
+                                          brickHeights[index].toString(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          brickHeights[index] =
+                                              int.tryParse(value) ??
+                                                  brickHeights[index];
+                                        });
+                                      },
+                                    ),
                                   ),
                                 ),
                               ],
@@ -343,9 +379,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     const Text('''
                       - Divide all heights by the same number to make them integers.
                       - Press "Design wall" again to get a different wall'''),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Wall type',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                      padding: const EdgeInsets.only(left: 30.0, right: 30.0),
                       child: DropdownButtonFormField(
                         value: selectedWallType,
                         items: WallType.values.map((WallType wallType) {
@@ -392,7 +436,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Container(
                       color: Colors.yellow[100],
                       child: Scrollbar(
